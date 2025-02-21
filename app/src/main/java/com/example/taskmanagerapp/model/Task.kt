@@ -5,16 +5,16 @@ class Task(desc: String) {
     private val description: String = desc
     private var completed: Boolean = false
     //functions
-    fun Check() {
+    fun check() {
         completed = !completed
     }
 
     //gets
-    fun GetCompleted(): Boolean {
+    fun getCompleted(): Boolean {
         return completed
     }
 
-    fun GetDescription(): String {
+    fun getDescription(): String {
         return description
     }
 }
