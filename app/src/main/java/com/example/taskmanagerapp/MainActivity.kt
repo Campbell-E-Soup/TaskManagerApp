@@ -84,7 +84,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
 fun TaskInputField(list: MutableList<Task>,modifier: Modifier = Modifier) {
     Row(modifier.fillMaxWidth()) { //text field and button
         var text by remember { mutableStateOf("") } //textbox state
-        TextField(
+        TextField( //basic text field
             value = text,
             onValueChange = { text = it },
             label = { Text("Enter Task") },
@@ -96,8 +96,8 @@ fun TaskInputField(list: MutableList<Task>,modifier: Modifier = Modifier) {
                 .weight(1f)
                 .padding(end = 4.dp)
         )
-        Button(
-            onClick = {
+        Button( //submit button
+            onClick = { //create task with text and clear text field
                 list.add(Task(text))
                 text = ""
             },
@@ -133,8 +133,8 @@ fun TaskList(list: MutableList<Task>, modifier: Modifier = Modifier) {
 }
 @Composable
 fun TaskItem(task: Task, index: Int, list: MutableList<Task>,modifier: Modifier = Modifier) {
+    var checked by remember { mutableStateOf(task.getCompleted()) } //task state
     //decorations for different task states
-    var checked by remember { mutableStateOf(task.getCompleted()) }
     val textColor = if (checked) colorResource(R.color.backgroundTextDisabled) else colorResource(R.color.backgroundText)
     val textStyle = if (checked) TextStyle(textDecoration = TextDecoration.LineThrough) else TextStyle()
     Row(modifier.padding(8.dp)) {
@@ -164,7 +164,8 @@ fun TaskItem(task: Task, index: Int, list: MutableList<Task>,modifier: Modifier 
         TextButton(
             onClick = { //remove from list
                 list.removeAt(index)
-            }
+            },
+            shape = RoundedCornerShape(8.dp)
         ) {
             Icon(
                 Icons.Rounded.Delete,
