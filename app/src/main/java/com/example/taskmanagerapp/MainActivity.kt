@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             TaskManagerAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    App(
+                    MainScreen(
                         modifier = Modifier
                             .padding(innerPadding)
                     )
@@ -63,10 +63,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun App(modifier: Modifier = Modifier) {
+fun MainScreen(modifier: Modifier = Modifier) {
     val mod = Modifier //new modifier to avoid innerPadding being added to everything
     val taskList = remember { mutableStateListOf(Task("Finish App"),Task("Test App")) } //to do list
-    var text by remember { mutableStateOf("") } //textbox state
     Surface( //background
         modifier = modifier,
         color = colorResource(R.color.background),
@@ -75,46 +74,51 @@ fun App(modifier: Modifier = Modifier) {
         Column(
             modifier = mod.padding(16.dp).fillMaxSize(),
         ) {
-            Row(mod.fillMaxWidth()) { //text field and button
-                TextField(
-                    value = text,
-                    onValueChange = { text = it },
-                    label = { Text("Enter Task") },
-                    colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = colorResource(R.color.backgroundUI),
-                        unfocusedLabelColor = colorResource(R.color.primary)
-                    ),
-                    modifier = mod
-                        .weight(1f)
-                        .padding(end = 4.dp)
-                )
-                Button(
-                    onClick = {
-                      taskList.add(Task(text))
-                      text = ""
-                    },
-                    modifier = mod
-                        .width(120.dp)
-                        .height(56.dp)
-                        .align(Alignment.CenterVertically),
-                    shape = RoundedCornerShape(4.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.primary))
-                ) {
-                    Text(
-                        text = "Add Task",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colorResource(R.color.primaryOn)
-                    )
-                }
-            }
-            RenderList(taskList)
+            TaskInputField(taskList)
+            TaskList(taskList)
         }
     }
 
 }
 @Composable
-fun RenderList(list: MutableList<Task>, modifier: Modifier = Modifier) {
+fun TaskInputField(list: MutableList<Task>,modifier: Modifier = Modifier) {
+    Row(modifier.fillMaxWidth()) { //text field and button
+        var text by remember { mutableStateOf("") } //textbox state
+        TextField(
+            value = text,
+            onValueChange = { text = it },
+            label = { Text("Enter Task") },
+            colors = TextFieldDefaults.colors(
+                unfocusedContainerColor = colorResource(R.color.backgroundUI),
+                unfocusedLabelColor = colorResource(R.color.primary)
+            ),
+            modifier = modifier
+                .weight(1f)
+                .padding(end = 4.dp)
+        )
+        Button(
+            onClick = {
+                list.add(Task(text))
+                text = ""
+            },
+            modifier = modifier
+                .width(120.dp)
+                .height(56.dp)
+                .align(Alignment.CenterVertically),
+            shape = RoundedCornerShape(4.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.primary))
+        ) {
+            Text(
+                text = "Add Task",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = colorResource(R.color.primaryOn)
+            )
+        }
+    }
+}
+@Composable
+fun TaskList(list: MutableList<Task>, modifier: Modifier = Modifier) {
     Surface(
         modifier = modifier.padding(top = 16.dp),
         color = colorResource(R.color.backgroundUI),
@@ -122,47 +126,51 @@ fun RenderList(list: MutableList<Task>, modifier: Modifier = Modifier) {
         ) {
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
             itemsIndexed(list) { index, task ->
-                //decorations for different task states
-                var checked by remember { mutableStateOf(task.getCompleted()) }
-                    val textColor = if (checked) colorResource(R.color.backgroundTextDisabled) else colorResource(R.color.backgroundText)
-                    val textStyle = if (checked) TextStyle(textDecoration = TextDecoration.LineThrough) else TextStyle()
-                Row(modifier) {
-                    Checkbox( //completed check
-                        checked = checked,
-                        onCheckedChange = {
-                            task.check()
-                            checked = task.getCompleted()
-                        },
-                        modifier = modifier.align(Alignment.CenterVertically),
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = colorResource(R.color.primary),
-                            checkmarkColor = colorResource(R.color.primaryOn)
-                        )
-                    )
-
-                    Text( //task description
-                        text = task.getDescription(),
-                        color = textColor,
-                        style = textStyle,
-                        fontSize = 16.sp,
-                        modifier = Modifier.padding(start = 2.dp, end = 8.dp, top = 16.dp, bottom = 16.dp)
-                            .fillMaxWidth()
-                            .weight(1f)
-                    )
-
-                    TextButton(
-                        onClick = { //remove from list
-                            list.removeAt(index)
-                        }
-                    ) {
-                        Icon(
-                            Icons.Rounded.Delete,
-                            contentDescription = "A trashcan representing delete",
-                            tint = colorResource(R.color.primary)
-                        )
-                    }
-                }
+                TaskItem(task,index,list)
             }
+        }
+    }
+}
+@Composable
+fun TaskItem(task: Task, index: Int, list: MutableList<Task>,modifier: Modifier = Modifier) {
+    //decorations for different task states
+    var checked by remember { mutableStateOf(task.getCompleted()) }
+    val textColor = if (checked) colorResource(R.color.backgroundTextDisabled) else colorResource(R.color.backgroundText)
+    val textStyle = if (checked) TextStyle(textDecoration = TextDecoration.LineThrough) else TextStyle()
+    Row(modifier.padding(8.dp)) {
+        Checkbox( //completed check
+            checked = checked,
+            onCheckedChange = {
+                task.check()
+                checked = task.getCompleted()
+            },
+            modifier = modifier.align(Alignment.CenterVertically),
+            colors = CheckboxDefaults.colors(
+                checkedColor = colorResource(R.color.primary),
+                checkmarkColor = colorResource(R.color.primaryOn)
+            )
+        )
+
+        Text( //task description
+            text = task.getDescription(),
+            color = textColor,
+            style = textStyle,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(start = 2.dp, end = 8.dp, top = 16.dp, bottom = 16.dp)
+                .fillMaxWidth()
+                .weight(1f)
+        )
+
+        TextButton(
+            onClick = { //remove from list
+                list.removeAt(index)
+            }
+        ) {
+            Icon(
+                Icons.Rounded.Delete,
+                contentDescription = "A trashcan representing delete",
+                tint = colorResource(R.color.primary)
+            )
         }
     }
 }
@@ -170,6 +178,6 @@ fun RenderList(list: MutableList<Task>, modifier: Modifier = Modifier) {
 @Composable
 fun AppPreview() {
     TaskManagerAppTheme {
-        App()
+        MainScreen()
     }
 }
